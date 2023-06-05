@@ -7,17 +7,19 @@ db = PoliceStaion()
 
 root = Tk()
 root.title("Vehicle Identification System")
-root.configure(bg="black",highlightthickness=7,highlightcolor="blue")
-root.geometry("900x700")
+root.configure(bg="black",highlightthickness=7,highlightcolor="PowderBlue")
+screen_width =root.winfo_screenwidth()
+scree_height= root.winfo_screenheight()
+
+
 
 my_notebook = ttk.Notebook(root)
 my_notebook.pack()
 
-my_frame1 = Frame(my_notebook, width=850,height=500,bg="black",highlightthickness=7,highlightcolor='blue')
-my_frame2 = Frame(my_notebook, width=900,height=700,bg="black",highlightthickness=7,highlightcolor='blue')
-my_frame3= Frame(my_notebook, width=900,height=700,bg="black",highlightthickness=7,highlightcolor='blue')
-my_frame4= Frame(my_notebook, width=900,height=700,bg="blue")
-
+my_frame1 = Frame(my_notebook,width=screen_width-30,height=scree_height-40,bg="black",highlightthickness=7,highlightcolor='blue')
+my_frame2 = Frame(my_notebook,width=screen_width-30,height=scree_height-40,bg="black",highlightthickness=7,highlightcolor='blue')
+my_frame3= Frame(my_notebook, width=screen_width-30,height=scree_height-40,bg="black",highlightthickness=7,highlightcolor='blue')
+my_frame4= Frame(my_notebook, width=screen_width-30,height=scree_height-40,bg="blue")
 my_frame1.pack(fill="both", expand=1)
 
 my_frame2.pack(fill="both", expand=1)
@@ -30,22 +32,29 @@ my_notebook.add(my_frame2, text="Add charges")
 my_notebook.add(my_frame3, text="Remove charges")
 my_notebook.add(my_frame4, text="Remove charges")
 
+#name of police station
+global police_station_details
+for police_station_details in db.police_station_name(474):
+    policeStation_name = police_station_details[0].upper()
+    # print(name[0].upper())
 
 
-system_Name =Label(my_frame1,padx=0, bd= 20,width=37, relief=RIDGE, text="KANDARA POLICE STATION SYSTEM", fg= "PowderBlue", bg="black", font=("times new roman",30))
+    system_Name =Label(my_frame1,padx=0, bd= 20,width=58, relief=RIDGE, text= policeStation_name +" POLICE STATION SYSTEM", fg= "PowderBlue", bg="black", font=("times new roman",30))
 system_Name.place(x=1,y=1)
 
 #tablet1
 def my_details(id):
+    tree.delete(*tree.get_children())
     global m_number
     m_number =[]
-    for x in db.details(id):
-        m_number.append(x)
-    print(m_number[1])
     if id =="":
         messagebox.showerror('Required Fields', 'Please Enter the number plate')
     tree.delete(*tree.get_children())
     tree.insert("",tk.END,value=db.details(id))
+    for x in db.details(id):
+        m_number.append(x)
+    print(m_number[1])
+
     
     
    
@@ -100,84 +109,55 @@ l1.place(x=4,y=400)
   
     
    
+   
+   
+   
+   
+   
 
 #Tablet2
-def populate_list():
-    parts_list.delete(0, END)
-    for row in db.fetch():
-        parts_list.insert(END, row)
+# def populate_list():
+    
+#     parts_list.delete(0, END)
+#     for row in db.fetch(police_station_details[1]):
+#         parts_list.insert(END, row)
 
+def populate_list():
+    tree.delete(*tree.get_children())
+    for row in db.fetch(police_station_details[1]):
+        tree.insert("",tk.END,value=row) 
 
 def add_item():
-    if Number_plate.get() == '' or Charges.get() == '' or date_of.get() == '' or County.get() == ''or Sub_location.get()==''or Police_station.get()=='':
+    if Number_plate.get() == '' or Charges.get() == '' :
         messagebox.showerror('Required Fields', 'Please include all fields')
         return
     try:
-        db.insert(Number_plate.get(), Charges.get(),
-                date_of.get(), County.get(),Sub_location.get(),Police_station.get())
+        db.insert(Number_plate.get(), Charges.get(),police_station_details[1])
+        # messagebox.showsuccess('charges inserted', 'charges are successufully inserted')
 
     except:
         messagebox.showerror('Not Registered', 'The number plate you entered is not registered')
-
-    parts_list.delete(0, END)
-    parts_list.insert(END, (Number_plate.get(), Charges.get(),
-                            date_of.get(), County.get(),Sub_location.get(),Police_station.get()))
+    tree.delete(*tree.get_children())
+    tree.insert("",tk.END,(Number_plate.get(), Charges.get()))
     clear_text()
     populate_list()
+    
+    # parts_list.delete(0, END)
+    # parts_list.insert(END, (Number_plate.get(), Charges.get()))
+    # clear_text()
+    # populate_list()
 
 
-def select_item(event):
-    try:
-        global selected_item
-        index = parts_list.curselection()[0]
-        selected_item = parts_list.get(index)
 
-        Number_plate_entry.delete(0, END)
-        Number_plate_entry.insert(END, selected_item[0])
-
-        Charges_entry.delete(0, END)
-        Charges_entry.insert(END, selected_item[1])
-
-        date_of_entry.delete(0, END)
-        date_of_entry.insert(END, selected_item[2])
-
-        County_entry.delete(0, END)
-        County_entry.insert(END, selected_item[3])
-
-        Sub_location_entry.delete(0, END)
-        Sub_location_entry.insert(END, selected_item[4])
-
-        Police_station_entry.delete(0, END)
-        Police_station_entry.insert(END, selected_item[5])
-    except IndexError:
-        pass
-
-def remove_item():
-    try:
-        if selected_item[5]=='kiambu':
-            db.remove(selected_item[6],'kiambu')
-            clear_text()
-            populate_list()
-        else:
-            messagebox.showerror('Report', 'Please report to '+ selected_item[5]+' police station ')
-    except:
-        print("jogoo")
-
-def update_item():
-    db.update(selected_item[0], Number_plate.get(), Charges.get(),
-              date_of.get(), County.get(),Sub_location.get(),Police_station.get())
-    populate_list()
+# def update_item():
+#     db.update(selected_item[0], Number_plate.get(), Charges.get(),
+#               date_of.get(), County.get(),Sub_location.get(),Police_station.get())
+#     populate_list()
 
 
 def clear_text():
     Number_plate_entry.delete(0, END)
     Charges_entry.delete(0, END)
-    date_of_entry.delete(0, END)
-    County_entry.delete(0, END)
-    Sub_location_entry.delete(0, END)
-    Police_station_entry.delete(0, END)
-
-
 
 # Number_Plate
 Number_plate = StringVar()
@@ -191,43 +171,98 @@ customer_label = Label(my_frame2, text='Charges', font=('bold', 14),pady=20,bg="
 customer_label.grid(row=0, column=2, sticky=W)
 Charges_entry = Entry(my_frame2, textvariable=Charges,bg='gray')
 Charges_entry.grid(row=0, column=3)
-# Date
-date_of = StringVar()
-retailer_label = Label(my_frame2, text='Date', font=('bold', 14),pady=20,bg="black",fg="blue")
-retailer_label.grid(row=1, column=0, sticky=W)
-date_of_entry = Entry(my_frame2, textvariable=date_of,bg='gray')
-date_of_entry.grid(row=1, column=1)
-# County
-County = StringVar()
-price_label = Label(my_frame2, text='County', font=('bold', 14),pady=20,bg="black",fg="blue")
-price_label.grid(row=1, column=2, sticky=W)
-County_entry = Entry(my_frame2, textvariable=County,bg='gray')
-County_entry.grid(row=1, column=3)
-# Sub location
-Sub_location = StringVar()
-part_label = Label(my_frame2, text='Sub Location', font=('bold', 14), pady=20,bg="black",fg="blue")
-part_label.grid(row=2, column=0, sticky=W)
-Sub_location_entry = Entry(my_frame2, textvariable=Sub_location,bg='gray')
-Sub_location_entry.grid(row=2, column=1)
-# Police station
-Police_station = StringVar()
-part_label = Label(my_frame2, text='Police Station', font=('bold', 14), pady=20,bg="black",fg="blue")
-part_label.grid(row=2, column=2, sticky=W)
-Police_station_entry = Entry(my_frame2, textvariable=Police_station,bg='gray')
-Police_station_entry.grid(row=2, column=3)
+
+
+
+
+
+def select_item(event):
+    select_item.has_been_called= True
+    try:
+        global x_index
+        index = tree.selection()[0]
+        x_index = tree.item(index)['values']
+        # selected_item = tree.get(index)
+        print(index)
+
+        Number_plate_entry.delete(0, END)
+        Number_plate_entry.insert(END, x_index[3])
+        Charges_entry.delete(0, END)
+        Charges_entry.insert(END, x_index[2])
+        # id_entry.delete(0, END)
+        # id_entry.insert(END, x[3])
+        print(x_index[4])
+     
+
+    except IndexError:
+        pass
+
+
+select_item.has_been_called =False
+
 
 
 # Parts List (Listbox)
 parts_list = Listbox(my_frame2, height=8,width=70,highlightthickness=5,bg='gray',highlightcolor='blue')
-parts_list.grid(row=4, column=0, columnspan=3, rowspan=6, pady=20, padx=20)
+# parts_list.grid(row=4, column=0, columnspan=3, rowspan=6, pady=20, padx=20)
 # Create scrollbar
 scrollbar = Scrollbar(my_frame2)
-scrollbar.grid(row=3, column=3)
+# scrollbar.grid(row=3, column=3)
 # Set scroll to listbox
 parts_list.configure(yscrollcommand=scrollbar.set)
 scrollbar.configure(command=parts_list.yview)
 # Bind select
 parts_list.bind('<<ListboxSelect>>', select_item)
+
+
+
+# treeview
+tree = ttk.Treeview(my_frame2, column=("c1", "c2", "c3","c4"), show='headings',height=10,selectmode='browse')
+style =ttk.Style(my_frame2)
+style.theme_use("clam")
+style.configure("Treeview",background='black',foreground='PowderBlue',fieldbackground='black',font='bold')
+style.configure('Treeview.Heading', background="PowderBlue")
+
+tree.column("#1", width=40)
+tree.heading("#1",text="Number")
+tree.column("#2", width=300)
+tree.heading("#2",text="Date Reported")
+tree.column("#3", width=200)
+tree.heading("#3",text="Charges")
+tree.column("#4", width=200)
+tree.heading("#4",text="Number plate")
+
+tree.grid(row=4,columnspan=4)
+# tree.place(x=2,y=340)
+tree.bind('<<TreeviewSelect>>', select_item)
+
+
+#scroll in tree view
+hs = ttk.Scrollbar(my_frame2,orient="vertical",command=tree.yview)
+# hs.place(x=270+100+100+180,y=300,height=100+20)
+
+# hs.configure(command=tree.yview)
+tree.configure(yscrollcommand=hs.set)
+
+
+
+def remove_item():
+    if select_item.has_been_called:
+        try:
+            if x_index[4]==police_station_details[1]:
+                db.remove(x_index[0],police_station_details[1])
+                clear_text()
+                populate_list()
+            else:
+              
+                messagebox.showerror('Report', 'Please report to  police station ')
+                
+        except:
+            print("jogoo")
+
+
+
+
 
 # Buttons
 add_btn = Button(my_frame2, text='Add Charges', width=12, command=add_item,bg="black",fg="blue")
@@ -240,6 +275,10 @@ clear_btn = Button(my_frame2, text='Clear Input', width=12, command=clear_text,b
 clear_btn.grid(row=3, column=2)
 # Populate data
 populate_list()
+
+
+
+
 
 #tablet 3
 def remove(id):
